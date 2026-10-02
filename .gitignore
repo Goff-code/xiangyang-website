@@ -1,0 +1,25 @@
+# Only these project roots are eligible for tracking.
+/*
+!/.gitignore
+!/README.md
+!/CONTENT_SOURCES.md
+!/DEPLOYMENT.md
+!/public/
+!/.github/
+
+# Credentials, local tooling and generated archives must stay local.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/credentials*
+**/secrets*
+**/.DS_Store
+**/node_modules/
+**/.openai/
+**/.sites-runtime/
+**/*.log
+**/*.zip
+**/*.tar.gz
