@@ -2,17 +2,39 @@
 
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const scrollBehavior = () => motionQuery.matches ? 'instant' : 'smooth';
+
+const header = document.querySelector('.site-header');
+const menuToggle = document.querySelector('.menu-toggle');
+const navigation = document.querySelector('#primary-nav');
+const mobileQuery = window.matchMedia('(max-width: 760px)');
+function setMenu(open, restoreFocus = false) {
+  header.classList.toggle('nav-open', open);
+  menuToggle.setAttribute('aria-expanded', String(open));
+  menuToggle.setAttribute('aria-label', open ? '关闭导航菜单' : '打开导航菜单');
+  if (restoreFocus) menuToggle.focus();
+}
+menuToggle.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
+navigation.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setMenu(false)));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && header.classList.contains('nav-open')) setMenu(false, true);
+});
+document.addEventListener('click', event => {
+  if (!header.contains(event.target)) setMenu(false);
+});
+mobileQuery.addEventListener('change', () => setMenu(false));
+
 const track = document.querySelector('#members-track');
 const slideButtons = [...document.querySelectorAll('[data-slide]')];
 const updateCarousel = () => {
   const end = track.scrollWidth - track.clientWidth;
   slideButtons.forEach(button => {
-    button.disabled = Number(button.dataset.slide) < 0 ? track.scrollLeft <= 2 : track.scrollLeft >= end - 2;
+    button.disabled = Number(button.dataset.slide) < 0 ? track.scrollLeft <= 4 : track.scrollLeft >= end - 4;
   });
 };
 slideButtons.forEach(button => button.addEventListener('click', () => {
   const card = track.querySelector('.member-card');
-  const step = card.getBoundingClientRect().width + 22;
+  const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+  const step = card.getBoundingClientRect().width + gap;
   const count = Math.max(1, Math.floor(track.clientWidth / step));
   track.scrollBy({ left: step * count * Number(button.dataset.slide), behavior: scrollBehavior() });
 }));
@@ -22,7 +44,13 @@ updateCarousel();
 
 let toastTimer;
 const toast = document.querySelector('#toast');
+const copyTimers = new WeakMap();
+const copyLabels = new WeakMap();
 function notify(message) {
+  if (document.querySelector('#qr-dialog').open) {
+    document.querySelector('#dialog-copy-status').textContent = message;
+    return;
+  }
   clearTimeout(toastTimer);
   toast.textContent = message;
   toast.classList.add('visible');
@@ -54,9 +82,10 @@ async function copyWechat(value, button) {
   if (copied) {
     notify(`已复制微信号 ${value}，添加时请备注「向阳前行」`);
     if (button) {
-      const previous = button.textContent;
+      if (!copyLabels.has(button)) copyLabels.set(button, button.textContent);
+      clearTimeout(copyTimers.get(button));
       button.textContent = '已复制';
-      setTimeout(() => { button.textContent = previous; }, 2200);
+      copyTimers.set(button, setTimeout(() => { button.textContent = copyLabels.get(button); }, 2200));
     }
   } else {
     notify(`未能自动复制，请长按微信号 ${value} 手动复制。`);
@@ -88,6 +117,9 @@ document.querySelectorAll('[data-qr]').forEach(button => button.addEventListener
   download.href = activeContact.image;
   download.download = activeContact.filename;
   document.querySelector('#manual-copy-hint').hidden = true;
+  document.querySelector('#dialog-copy-status').textContent = '';
+  clearTimeout(copyTimers.get(dialogCopy));
+  dialogCopy.textContent = '复制微信号';
   dialog.showModal();
   document.body.classList.add('dialog-open');
 }));
@@ -106,10 +138,15 @@ document.querySelectorAll('[data-plan]').forEach(link => link.addEventListener('
 }));
 
 const mobileBar = document.querySelector('#mobile-consult');
+const visibleContactActions = new Set();
 const contactObserver = new IntersectionObserver(entries => {
-  mobileBar.classList.toggle('is-hidden', entries[0].isIntersecting);
-}, { threshold: 0.05 });
-contactObserver.observe(document.querySelector('#contact'));
+  entries.forEach(entry => {
+    if (entry.isIntersecting && entry.intersectionRatio >= 0.8) visibleContactActions.add(entry.target);
+    else visibleContactActions.delete(entry.target);
+  });
+  mobileBar.classList.toggle('is-hidden', visibleContactActions.size > 0);
+}, { threshold: [0, 0.8], rootMargin: '-80px 0px -84px 0px' });
+document.querySelectorAll('.contact-card .copy-button').forEach(button => contactObserver.observe(button));
 
 // Modest motion supports reading; content is never dependent on animations.
 if (!motionQuery.matches && 'IntersectionObserver' in window) {

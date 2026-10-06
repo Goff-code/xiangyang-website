@@ -6,6 +6,20 @@
 
 当前尚未启用 GitHub Pages。仓库网址用于查看文件与交给 Agent 审阅，页面效果可按下面的方法在本地打开。
 
+## 当前设计预览
+
+2026-10-06 版本优化了首屏排版、会员展示、活动照片布局、会员方案与手机导航。价格、权益与联系方式保持原有确认内容。
+
+以下为本版本在浏览器中的实际截图；完整交互请启动本地预览。
+
+![电脑首屏](.github/previews/desktop.jpg)
+
+[查看手机首屏](.github/previews/mobile.jpg) · [查看官网全页](.github/previews/full-page.jpg)
+
+可将下面这段话连同仓库网址发给 Codex：
+
+> 请帮我查看向阳前行官网：https://github.com/Goff-code/xiangyang-website 。请克隆仓库，先阅读 README.md 和 CONTENT_SOURCES.md，再启动本地预览，在浏览器中展示电脑和手机效果。我主要想确认整体设计、会员介绍和入会咨询流程。请先展示与审阅，不要修改文件或发布网站。如果当前环境不能运行网页，请先打开 README 中的实际页面截图，并说明限制。
+
 ## 文件结构
 
 - `public/index.html`：页面文案、会员计划、活动与联系方式。
@@ -13,6 +27,7 @@
 - `public/app.js`：会员浏览、微信复制、二维码弹窗与咨询提示。
 - `public/assets/`：经授权公开的照片与微信二维码。
 - `CONTENT_SOURCES.md`：素材来源及内容边界，随仓库公开供审阅。
+- `.github/previews/`：当前版本的实际页面截图，供直接查看设计。
 - `.github/workflows/pages.yml`：手动发布 GitHub Pages 的工作流，仅上传 `public/`。
 - `DEPLOYMENT.md`：当前部署状态与后续操作说明。
 
